@@ -253,3 +253,80 @@ func BenchmarkContextWithTimeout(b *testing.B) {
 
 	b.SetBytes(int64(n / b.N))
 }
+
+func mergeCtx(left, right context.Context) (context.Context, context.CancelFunc) {
+
+	ctx, cancel := context.WithCancel(right)
+
+	go func() {
+		select {
+		case <-left.Done():
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	return ctx, cancel
+}
+
+func TestMergeCtx_left(t *testing.T) {
+
+	left, leftCancel := context.WithCancel(context.Background())
+	right := context.Background()
+
+	ctx, cancel := mergeCtx(left, right)
+	defer cancel()
+
+	leftCancel()
+	<-ctx.Done()
+}
+
+func TestMergeCtx_right(t *testing.T) {
+
+	left := context.Background()
+	right, rightCancel := context.WithCancel(context.Background())
+
+	ctx, cancel := mergeCtx(left, right)
+	defer cancel()
+
+	rightCancel()
+	<-ctx.Done()
+}
+
+func TestMergeCtx_child(t *testing.T) {
+
+	left := context.Background()
+	right := context.Background()
+
+	ctx, cancel := mergeCtx(left, right)
+	cancel()
+	<-ctx.Done()
+}
+
+func BenchmarkMergeWithExtraGoroutine(b *testing.B) {
+
+	ctx := context.Background()
+	ch := make(chan []byte)
+
+	go func() {
+		var counter int
+		for {
+			if counter >= b.N {
+				close(ch)
+				return
+			}
+
+			_, cancel := mergeCtx(ctx, context.Background())
+			ch <- data
+			cancel()
+			counter++
+		}
+	}()
+
+	var n int
+	for data := range ch {
+		n += len(data)
+	}
+
+	b.SetBytes(int64(n / b.N))
+}
