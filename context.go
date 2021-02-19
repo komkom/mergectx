@@ -43,7 +43,7 @@ func newCtx(ctx context.Context) *Ctx {
 	return r
 }
 
-func (r *Ctx) MergeWithCancel(ctx context.Context) (context.Context, context.CancelFunc) {
+func (r *Ctx) Merge(ctx context.Context) (context.Context, context.CancelFunc) {
 
 	out, cancel := context.WithCancel(ctx)
 

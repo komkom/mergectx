@@ -18,7 +18,7 @@ func ExampleCtx_cancelMergeCtx() {
 
 	for i := 0; i < loop; i++ {
 
-		ctx, cancel := rootCtx.MergeWithCancel(context.Background())
+		ctx, cancel := rootCtx.Merge(context.Background())
 
 		go func() {
 
@@ -49,7 +49,7 @@ func ExampleCtx_cancelRequestContexts() {
 
 	for i := 0; i < loop; i++ {
 
-		ctx, cancel := rootCtx.MergeWithCancel(context.Background())
+		ctx, cancel := rootCtx.Merge(context.Background())
 		cancels = append(cancels, cancel)
 
 		go func() {

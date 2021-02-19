@@ -21,7 +21,7 @@ func TestContext_cancelRoot(t *testing.T) {
 
 	for i := 0; i < loop; i++ {
 
-		cctx, cancel := r.MergeWithCancel(context.Background())
+		cctx, cancel := r.Merge(context.Background())
 
 		go func() {
 			wg.Done()
@@ -50,7 +50,7 @@ func TestContext_cancelChild(t *testing.T) {
 	var cancels []context.CancelFunc
 	for i := 0; i < loop; i++ {
 
-		cctx, cancel := r.MergeWithCancel(context.Background())
+		cctx, cancel := r.Merge(context.Background())
 		cancels = append(cancels, cancel)
 
 		go func() {
@@ -74,7 +74,7 @@ func TestContext_cancelRootParent(t *testing.T) {
 	r, rootCancel := ContextWithCancel(ctx)
 	defer rootCancel()
 
-	cctx, ccancel := r.MergeWithCancel(context.Background())
+	cctx, ccancel := r.Merge(context.Background())
 	defer ccancel()
 
 	parentCancel()
@@ -94,7 +94,7 @@ func TestContext_cleanChildren(t *testing.T) {
 
 	for i := 0; i < loop; i++ {
 
-		ctx, cancel := rootCtx.MergeWithCancel(context.Background())
+		ctx, cancel := rootCtx.Merge(context.Background())
 		cancels = append(cancels, cancel)
 
 		go func() {
@@ -131,7 +131,7 @@ func BenchmarkRootContext(b *testing.B) {
 				return
 			}
 
-			_, ccl := r.MergeWithCancel(context.Background())
+			_, ccl := r.Merge(context.Background())
 			ch <- data
 			ccl()
 			counter++
