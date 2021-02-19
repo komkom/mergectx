@@ -5,6 +5,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContext_cancelRoot(t *testing.T) {
@@ -77,6 +79,40 @@ func TestContext_cancelRootParent(t *testing.T) {
 
 	parentCancel()
 	<-cctx.Done()
+}
+
+func TestContext_cleanChildren(t *testing.T) {
+
+	rootCtx, cancel := ContextWithCancel(context.Background())
+	defer cancel()
+
+	loop := 10
+	var wg sync.WaitGroup
+	wg.Add(loop)
+
+	var cancels []func()
+
+	for i := 0; i < loop; i++ {
+
+		ctx, cancel := rootCtx.MergeWithCancel(context.Background())
+		cancels = append(cancels, cancel)
+
+		go func() {
+
+			<-ctx.Done()
+			cancel()
+			wg.Done()
+		}()
+	}
+
+	assert.Equal(t, loop, len(rootCtx.children))
+
+	for _, c := range cancels {
+		c()
+	}
+	wg.Wait()
+
+	assert.Equal(t, 0, len(rootCtx.children))
 }
 
 var data = []byte(`___some_data_`)
