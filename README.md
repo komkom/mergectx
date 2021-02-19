@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/komkom/mergectx)](https://goreportcard.com/report/github.com/komkom/mergectx)
+
 # mergectx
 
 This pkg implements a context which can be used globally in a server. Incoming request contexts can then be merged with this global context.
